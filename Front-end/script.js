@@ -15,6 +15,6 @@ function login(role) {
     const username = document.getElementById(`${role}-username`).value;
     const password = document.getElementById(`${role}-password`).value;
 
-    // This is where you'd implement the actual login logic.
+
     alert(`Logged in as ${role}: ${username}`);
 }
