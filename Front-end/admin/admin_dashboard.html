@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="admin_styles.css">
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -26,16 +33,22 @@
                     <span>Hospital A</span>
                     <input type="number" id="beds-hospital-a" value="50">
                     <button onclick="updateBeds('Hospital A')">Update</button>
+                    <p>Address: 123 Main St, Anytown, USA</p>
+                    <p>Phone: 555-555-5555</p>
                 </div>
                 <div class="hospital-item">
                     <span>Hospital B</span>
                     <input type="number" id="beds-hospital-b" value="30">
                     <button onclick="updateBeds('Hospital B')">Update</button>
+                    <p>Address: 456 Elm St, Othertown, USA</p>
+                    <p>Phone: 555-555-5556</p>
                 </div>
                 <!-- Add more hospitals as needed -->
             </div>
         </div>
+        <div id="map"></div>
     </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"></script>
     <script src="admin_script.js"></script>
 </body>
 </html>

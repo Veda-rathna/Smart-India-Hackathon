@@ -15,5 +15,3 @@ function redirectBasedOnRole() {
     }
 }
 
-// Redirect to the appropriate dashboard after 2 seconds (for demonstration)
-setTimeout(redirectBasedOnRole, 2000);
