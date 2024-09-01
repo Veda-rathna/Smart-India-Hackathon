@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Queue Status</title>
+</head>
+<body>
+    <h1>Queue Status</h1>
+    <ul>
+        {% for item in queue %}
+            <li>{{ item.patient.name }} - Expected Service Time: {{ item.service_time }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'patient_arrival' %}">Add New Patient</a>
+</body>
+</html>
