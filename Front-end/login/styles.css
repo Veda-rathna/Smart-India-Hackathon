@@ -84,3 +84,13 @@ body::before {
 .hidden {
     display: none;
 }
+
+.logout {
+    color: red;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.logout:hover {
+    text-decoration: underline;
+}

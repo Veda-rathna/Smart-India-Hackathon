@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="admin_styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <ul>
+            <li><a href="../home.html">Home</a></li>
+            <li><a href="#">Manage Hospitals</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Help</a></li>
+            <li><a href="../login/index.html" class="logout">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <div class="hospital-management">
+            <h2>Manage Hospital Beds</h2>
+            <div class="hospital-list">
+                <div class="hospital-item">
+                    <span>Hospital A</span>
+                    <input type="number" id="beds-hospital-a" value="50">
+                    <button onclick="updateBeds('Hospital A')">Update</button>
+                </div>
+                <div class="hospital-item">
+                    <span>Hospital B</span>
+                    <input type="number" id="beds-hospital-b" value="30">
+                    <button onclick="updateBeds('Hospital B')">Update</button>
+                </div>
+                <!-- Add more hospitals as needed -->
+            </div>
+        </div>
+    </div>
+    <script src="admin_script.js"></script>
+</body>
+</html>
