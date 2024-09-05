@@ -1,15 +1,26 @@
+<!-- queue_status.html -->
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Queue Status</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'queue_app/css/queue_status.css' %}">
 </head>
 <body>
     <h1>Queue Status</h1>
     <ul>
         {% for item in queue %}
-            <li>{{ item.patient.name }} - Expected Service Time: {{ item.service_time }}</li>
+            <li>{{ item.patient.name }} - Condition Severity: {{ item.patient.condition_severity }} - Priority: {{ item.priority }} - Expected Service Time: {{ item.patient.calculate_actual_service_time }} minutes</li>
+        {% empty %}
+            <li>No patients in queue.</li>
         {% endfor %}
     </ul>
+
+    <form method="post" action="{% url 'clear_queue' %}">
+        {% csrf_token %}
+        <button type="submit">Clear Queue</button>
+    </form>
+    
     <a href="{% url 'patient_arrival' %}">Add New Patient</a>
 </body>
 </html>
