@@ -1,9 +1,74 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Home</title>
-</head>
-<body>
-    <h1>Welcome to the Home Page!</h1>
-</body>
+<html lang="en">
+  <head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page</title>
+    <link rel="stylesheet" href="{% static 'queue_app/css/login.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="login-box" id="user-login">
+        <h2>User Login</h2>
+        <form method="POST" action="{% url 'login_view' %}" id="userForm">
+          {% csrf_token %}
+          <div class="textbox">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              id="user-username"
+              required
+            />
+          </div>
+          <div class="textbox">
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              id="user-password"
+              required
+            />
+          </div>
+          <input type="hidden" name="role" value="user" />
+          <input type="submit" class="btn" value="Login" />
+        </form>
+        <p class="toggle-login">
+          Admin? <a href="#" onclick="toggleLogin('admin')">Login Here</a>
+        </p>
+      </div>
+
+      <div class="login-box hidden" id="admin-login">
+        <h2>Admin Login</h2>
+        <form method="POST" action="{% url 'login_view' %}" id="adminForm">
+          {% csrf_token %}
+          <div class="textbox">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              id="admin-username"
+              required
+            />
+          </div>
+          <div class="textbox">
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              id="admin-password"
+              required
+            />
+          </div>
+          <input type="hidden" name="role" value="admin" />
+          <input type="submit" class="btn" value="Login" />
+        </form>
+        <p class="toggle-login">
+          User? <a href="#" onclick="toggleLogin('user')">Login Here</a>
+        </p>
+      </div>
+    </div>
+    <script src="{% static 'queue_app/js/login.js' %}"></script>
+  </body>
 </html>

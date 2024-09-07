@@ -4,6 +4,30 @@ from .models import Patient, Queue
 from .forms import PatientForm
 from django.contrib import messages
 from queue_app.models import Queue
+from django.contrib.auth.views import LoginView
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        role = request.POST.get('role')
+
+        # Default credentials for demonstration purposes
+        if role == 'user' and username == 'user' and password == 'user':
+            return redirect('queue_status')
+        elif role == 'admin' and username == 'admin' and password == 'admin':
+            return redirect('patient_arrival')
+        else:
+            messages.error(request, 'Invalid credentials')
+            return redirect('login_view')
+
+    return render(request, 'login.html')
+
+def queue_status(request):
+    return render(request, 'queue_status.html')
+
+def patient_arrival(request):
+    return render(request, 'patient_arrival.html')
 
 def patient_arrival(request):
     if request.method == 'POST':
