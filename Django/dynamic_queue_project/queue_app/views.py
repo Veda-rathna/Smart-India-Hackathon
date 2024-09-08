@@ -69,3 +69,6 @@ def clear_queue(request):
         Queue.objects.all().delete()
         messages.success(request, 'Queue has been cleared successfully.')
     return redirect('queue_status')
+
+def nearby_hospitals(request):
+    return render(request, 'queue_app/nearby_hospitals.html')

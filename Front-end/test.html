@@ -1,45 +1,103 @@
-<!-- core/templates/login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>Nearby Hospitals</title>
+    <!-- Load Leaflet.js for OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="login-box" id="user-login">
-            <h2>User Login</h2>
-            <form method="POST" id="userForm">
-                {% csrf_token %}
-                <div class="textbox">
-                    <input type="text" placeholder="Username" name="username">
-                </div>
-                <div class="textbox">
-                    <input type="password" placeholder="Password" name="password">
-                </div>
-                <input type="submit" class="btn" value="Login">
-            </form>
-            <p class="toggle-login">Admin? <a href="#" onclick="toggleLogin('admin')">Login Here</a></p>
-        </div>
+    <nav class="navbar">
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'nearby_hospitals' %}">Nearby Hospitals</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Help</a></li>
+            <li><a href="{% url 'login' %}" class="logout">Logout</a></li>
+        </ul>
+    </nav>
 
-        <div class="login-box hidden" id="admin-login">
-            <h2>Admin Login</h2>
-            <form method="POST" id="adminForm">
-                {% csrf_token %}
-                <div class="textbox">
-                    <input type="text" placeholder="Username" name="username">
-                </div>
-                <div class="textbox">
-                    <input type="password" placeholder="Password" name="password">
-                </div>
-                <input type="submit" class="btn" value="Login">
-            </form>
-            <p class="toggle-login">User? <a href="#" onclick="toggleLogin('user')">Login Here</a></p>
-        </div>
+    <div class="container">
+        <h1>Find the Nearest Hospitals</h1>
+        <button onclick="getLocation()">Get My Location</button>
+        <div id="map"></div>
+        <p id="location">Your location will appear here...</p>
+        <p id="hospital-info">Hospital information will appear here...</p>
     </div>
-    <script src="{% static 'js/script.js' %}"></script>
+
+    <script>
+        let map;
+        let hospitalMarkers = [];
+
+        function initMap(lat, lng) {
+            // Initialize map
+            map = L.map('map').setView([lat, lng], 15);
+
+            // Load OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add user's current location as a marker
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('You are here')
+                .openPopup();
+
+            // Fetch nearby hospitals using Overpass API
+            fetchHospitals(lat, lng);
+        }
+
+        function fetchHospitals(lat, lng) {
+            // Overpass API URL for searching nearby hospitals
+            const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node(around:5000,${lat},${lng})[amenity=hospital];out;`;
+
+            fetch(overpassUrl)
+                .then(response => response.json())
+                .then(data => {
+                    data.elements.forEach(hospital => {
+                        const hospitalLat = hospital.lat;
+                        const hospitalLng = hospital.lon;
+                        const hospitalName = hospital.tags.name || "Unnamed Hospital";
+
+                        // Add hospital marker to map
+                        const marker = L.marker([hospitalLat, hospitalLng]).addTo(map)
+                            .bindPopup(`<strong>${hospitalName}</strong>`);
+                        
+                        hospitalMarkers.push(marker);
+                        displayHospitalInfo(hospitalName, hospitalLat, hospitalLng);
+                    });
+                })
+                .catch(error => console.error('Error fetching hospital data:', error));
+        }
+
+        function displayHospitalInfo(name, lat, lng) {
+            const hospitalInfo = document.getElementById("hospital-info");
+            const hospitalDetails = `<p><strong>${name}</strong> - Location: (${lat}, ${lng})</p>`;
+            hospitalInfo.innerHTML += hospitalDetails;
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById("location").innerText = `Latitude: ${lat}, Longitude: ${lng}`;
+                    initMap(lat, lng);
+                }, () => {
+                    alert("Geolocation failed.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+    </script>
 </body>
 </html>
