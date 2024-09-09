@@ -42,6 +42,16 @@ class Patient(models.Model):
         return self.name
 
 
+class PatientQueue(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    priority = models.IntegerField(default=0)  # Priority field
+    
+    def calculate_priority(self):
+        # You can adjust this logic based on what defines 'priority'
+        self.priority = self.patient.condition_severity
+        self.save()
+        
+
 class Queue(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     priority = models.IntegerField(default=0)

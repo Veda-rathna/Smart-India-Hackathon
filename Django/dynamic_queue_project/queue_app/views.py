@@ -5,6 +5,7 @@ from .forms import PatientForm
 from django.contrib import messages
 from queue_app.models import Queue
 from django.contrib.auth.views import LoginView
+from .models import PatientQueue
 
 def login_view(request):
     if request.method == 'POST':
@@ -24,7 +25,8 @@ def login_view(request):
     return render(request, 'login.html')
 
 def queue_status(request):
-    return render(request, 'queue_status.html')
+    queue = PatientQueue.objects.order_by('-priority')
+    return render(request, 'queue_status.html', {'queue': queue})
 
 def patient_arrival(request):
     return render(request, 'patient_arrival.html')
