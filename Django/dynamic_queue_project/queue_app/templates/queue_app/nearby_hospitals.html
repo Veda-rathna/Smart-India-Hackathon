@@ -97,6 +97,34 @@
         border-radius: 8px;
       }
 
+      .dropdown-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      /* Dropdown styles */
+      .dropdown {
+        width: 45%;
+      }
+
+      .dropdown select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+      }
+
+      .searchbar {
+        width: 45%;
+      }
+
+      .searchbar input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+      }
+
       /* Hospital info styling */
       .hospital-list {
         display: flex;
@@ -106,10 +134,8 @@
       .hospital-info-item {
         display: flex;
         justify-content: space-between;
-        padding: 5px 0; /* Adjust padding as needed */
-        border-bottom: 1px solid #ddd; /* Optional border for separation */
-        width: 100%;
-        box-sizing: border-box;
+        padding: 5px 0;
+        border-bottom: 1px solid #ddd;
       }
 
       .hospital-info-item .name {
@@ -126,8 +152,13 @@
           width: 90%;
         }
 
-        button {
+        .dropdown-container {
+          flex-direction: column;
+        }
+
+        .dropdown, .searchbar {
           width: 100%;
+          margin-bottom: 10px;
         }
       }
     </style>
@@ -146,6 +177,21 @@
     <div class="container">
       <h1>Find the Nearest Hospitals</h1>
       <button onclick="getLocation()">Get My Location</button>
+      
+      <!-- Dropdown and Search Bar -->
+      <div class="dropdown-container">
+        <div class="dropdown">
+          <select id="hospitalDropdown" onchange="moveToHospital()">
+            <option value="" selected>Select a hospital</option>
+            <!-- Hospital options will be dynamically added here -->
+          </select>
+        </div>
+
+        <div class="searchbar">
+          <input type="text" id="hospitalSearch" placeholder="Search hospitals..." onkeyup="searchHospital()" />
+        </div>
+      </div>
+
       <div id="map"></div>
       <p id="location">Your location will appear here...</p>
       <div id="hospital-info" class="hospital-list">
@@ -156,97 +202,58 @@
     <script>
       let map;
       let hospitalMarkers = [];
+      let hospitalsWithDistance = []; // To store hospital data
 
       function initMap(lat, lng) {
-        // Initialize map
         map = L.map("map").setView([lat, lng], 15);
 
-        // Load OpenStreetMap tiles
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
 
-        // Add user's current location as a marker
         L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
 
-        // Fetch nearby hospitals using Overpass API
         fetchHospitals(lat, lng);
       }
 
-      // Function to calculate distance using Haversine formula
       function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // Radius of the Earth in km
         const dLat = ((lat2 - lat1) * Math.PI) / 180;
         const dLon = ((lon2 - lon1) * Math.PI) / 180;
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c; // Distance in km
-        return distance;
+        return R * c; // Distance in km
       }
 
       function fetchHospitals(lat, lng) {
-        // Overpass API URL for searching nearby hospitals within a 30 km (30,000 meters) radius
         const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node(around:30000,${lat},${lng})[amenity=hospital];out;`;
 
         fetch(overpassUrl)
           .then((response) => response.json())
           .then((data) => {
-            // Create an array of hospitals with their calculated distances
-            const hospitalsWithDistance = data.elements.map((hospital) => {
+            hospitalsWithDistance = data.elements.map((hospital) => {
               const hospitalLat = hospital.lat;
               const hospitalLng = hospital.lon;
               const hospitalName = hospital.tags.name || "Unnamed Hospital";
-              const distance = calculateDistance(
-                lat,
-                lng,
-                hospitalLat,
-                hospitalLng
-              ); // Calculate distance
+              const distance = calculateDistance(lat, lng, hospitalLat, hospitalLng);
 
-              return {
-                name: hospitalName,
-                lat: hospitalLat,
-                lng: hospitalLng,
-                distance: distance,
-              };
+              return { name: hospitalName, lat: hospitalLat, lng: hospitalLng, distance };
             });
 
-            // Sort hospitals by distance (ascending)
             hospitalsWithDistance.sort((a, b) => a.distance - b.distance);
 
-            // Add markers to map and display sorted hospitals
             hospitalsWithDistance.forEach((hospital) => {
-              // Add hospital marker to map
-              const marker = L.marker([hospital.lat, hospital.lng])
-                .addTo(map)
-                .bindPopup(
-                  `<strong>${
-                    hospital.name
-                  }</strong><br>Distance: ${hospital.distance.toFixed(2)} km`
-                );
-
+              const marker = L.marker([hospital.lat, hospital.lng]).addTo(map).bindPopup(`<strong>${hospital.name}</strong><br>Distance: ${hospital.distance.toFixed(2)} km`);
               hospitalMarkers.push(marker);
-              displayHospitalInfo(
-                hospital.name,
-                hospital.lat,
-                hospital.lng,
-                hospital.distance
-              );
+
+              displayHospitalInfo(hospital.name, hospital.distance);
+              addHospitalToDropdown(hospital.name);
             });
           })
-          .catch((error) =>
-            console.error("Error fetching hospital data:", error)
-          );
+          .catch((error) => console.error("Error fetching hospital data:", error));
       }
 
-      // Function to display hospital information
-      function displayHospitalInfo(name, lat, lng, distance) {
+      function displayHospitalInfo(name, distance) {
         const hospitalInfoElement = document.getElementById('hospital-info');
         const infoItem = document.createElement('div');
         infoItem.className = 'hospital-info-item';
@@ -265,23 +272,47 @@
         hospitalInfoElement.appendChild(infoItem);
       }
 
+      function addHospitalToDropdown(name) {
+        const dropdown = document.getElementById('hospitalDropdown');
+        const option = document.createElement('option');
+        option.value = name;
+        option.innerText = name;
+        dropdown.appendChild(option);
+      }
+
+      function moveToHospital() {
+        const selectedHospital = document.getElementById('hospitalDropdown').value;
+        const hospital = hospitalsWithDistance.find(h => h.name === selectedHospital);
+        if (hospital) {
+          map.setView([hospital.lat, hospital.lng], 15);
+        }
+      }
+
+      function searchHospital() {
+        const searchQuery = document.getElementById('hospitalSearch').value.toLowerCase();
+        const filteredHospitals = hospitalsWithDistance.filter(h => h.name.toLowerCase().includes(searchQuery));
+
+        hospitalMarkers.forEach(marker => marker.removeFrom(map));
+        filteredHospitals.forEach(hospital => {
+          const marker = L.marker([hospital.lat, hospital.lng]).addTo(map).bindPopup(`<strong>${hospital.name}</strong><br>Distance: ${hospital.distance.toFixed(2)} km`);
+          hospitalMarkers.push(marker);
+        });
+
+        const hospitalInfoElement = document.getElementById('hospital-info');
+        hospitalInfoElement.innerHTML = '';
+        filteredHospitals.forEach(hospital => displayHospitalInfo(hospital.name, hospital.distance));
+      }
+
       function getLocation() {
         if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const lat = position.coords.latitude;
-              const lng = position.coords.longitude;
-              document.getElementById(
-                "location"
-              ).innerText = `Latitude: ${lat}, Longitude: ${lng}`;
-              initMap(lat, lng);
-            },
-            () => {
-              alert("Geolocation failed.");
-            }
-          );
+          navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById("location").innerText = `Latitude: ${lat}, Longitude: ${lng}`;
+            initMap(lat, lng);
+          });
         } else {
-          alert("Geolocation is not supported by this browser.");
+          document.getElementById("location").innerText = "Geolocation is not supported by this browser.";
         }
       }
     </script>
